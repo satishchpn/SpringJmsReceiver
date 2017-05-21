@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	<mvc:annotation-driven />
+
+	<!-- Activemq connection factory -->
+	<bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<!-- brokerURL, You may have different IP or port -->
+		<constructor-arg index="0" value="tcp://localhost:61616" />
+		<property name="trustAllPackages" value="true" />
+	</bean>
+
+
+	<!-- Default Destination Queue -->
+	<bean id="defaultDestination" class="org.apache.activemq.command.ActiveMQQueue">
+		<!-- name of the queue -->
+		<constructor-arg index="0" value="greeting.queue" />
+	</bean>
+
+	<!-- JmsTemplate -->
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="defaultDestination" ref="defaultDestination" />
+	</bean>
+
+
+	<!-- Sender -->
+	<bean id="receiver" class="com.zycus.assignment.reciver.JmsMessageReceiver">
+		<property name="jmsTemplate" ref="jmsTemplate" />
+	</bean>
+
+	<!-- Service -->
+	<bean id="service" class="com.zycus.assignment.service.ReciverService">
+		<property name="receiver" ref="receiver" />
+	</bean>
+
+	<!-- Controller -->
+	<bean id="controller" class="com.zycus.assignment.controller.JMSReciverController">
+		<property name="service" ref="service" />
+	</bean>
+
+</beans>
